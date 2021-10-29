@@ -1,12 +1,11 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
 public class Movement3D : MonoBehaviour
 {
 	public bool IsCanJump;
 	[SerializeField]
 	private Transform playerTransform;
-	public float JumpHight_Before = 0f;
-	public float JumpHight_After = 0f;
 
 	public float Speed = 5f;
 	public float RunSpeed = 10f;
@@ -47,30 +46,29 @@ public class Movement3D : MonoBehaviour
 		moveDirection	= new Vector3(movedis.x, moveDirection.y, movedis.z);
 	}
 
-	public void JumpTo()
+	public bool JumpTo(bool isJumppress)
 	{
-		if ( characterController.isGrounded == true )
+		bool IsFallen = false;
+		if(!IsFallen)
 		{
-			IsCanJump = true;
-			JumpHight_Before = playerTransform.position.y;
+			if(isJumppress)
+			{
+				if ( characterController.isGrounded == true )
+				{
+					IsCanJump = true;
+					StartCoroutine(CountJumpDelay());
+				}
+				if (IsCanJump)
+				{
+					moveDirection.y = jumpForce;
+				}
+			}
+			if(moveDirection.y < 1)
+			{
+				IsFallen = true;
+			}
 		}
-        else
-        {
-			JumpHight_After = playerTransform.position.y;
-		}
-		if( (JumpHight_After - JumpHight_Before) > 5)
-        {
-			IsCanJump = false; // 점프 받는 키를 이 순간 getkey down으로 바꿔버리면 되지 않을까
-		}
-        if (IsCanJump)
-        {
-			moveDirection.y = jumpForce;
-		}
-        else
-        {
-			JumpHight_After = 0f;
-			JumpHight_Before = 0f; ;
-		}
+		return IsFallen;
 	}
 
 	public void MatchSightToCamera(float x, float z)
@@ -82,6 +80,12 @@ public class Movement3D : MonoBehaviour
 		{
 			transform.forward = moveDirection;
 		}
+	}
+
+	IEnumerator CountJumpDelay()
+	{
+		yield return new WaitForSecondsRealtime(0.5f);
+		IsCanJump = false;
 	}
 }
 
